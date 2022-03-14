@@ -1,0 +1,11 @@
+Here you can create your modules
+
+nameModule
+    -Models  
+    -Routes
+    -Controllers
+    -Middleawares
+
+Remember to import the routes of each module in the Routes.ts file
+
+    
