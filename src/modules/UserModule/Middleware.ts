@@ -1,25 +1,67 @@
 import { Request, Response } from "express";
-import { body, validationResult } from 'express-validator';
+import { body, validationResult, query } from 'express-validator';
 import { UserModel } from "./Models";
+import jwt from 'jsonwebtoken';
+
 export default class Middlewares {
 
-    static validateSingUp = [
+    //-------------------Validate fields----------------------
+
+    private static validateErrors = (req: Request, res: Response, next: any) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty())
+            return res.status(422).json({ errors: errors.array() });
+        next();
+    }
+
+    static validateFieldsSingUp = [
         body('email').notEmpty().isEmail(),
         body('firstName').notEmpty().isLength({ min: 4, max: 20 }),
         body('lastName').notEmpty().isLength({ min: 4, max: 20 }),
         body('password').notEmpty().isLength({ min: 8, max: 15 }),
+        Middlewares.validateErrors
+    ];
 
-        (req: Request, res: Response, next: any) => {
-            const errors = validationResult(req);
-            if (!errors.isEmpty())
-                return res.status(422).json({ errors: errors.array() });
+    static validateFieldsLogIn = [
+        query('email').notEmpty().isEmail(),
+        query('password').notEmpty().isLength({ min: 8, max: 15 }),
+        Middlewares.validateErrors
+    ];
+
+    static validateFieldRename = [
+        body('firstName').notEmpty().isLength({ min: 4, max: 20 }),
+        body('lastName').notEmpty().isLength({ min: 4, max: 20 }),
+        Middlewares.validateErrors
+    ];
+
+    //--------------------Validate token-----------------
+    static isUserToken = async (req: Request, res: Response, next: any) => {
+        try {
+            const token = req.headers['x-access-token']?.toString();
+            if (!token) return res.json({ message: 'No token' });
+            const id = jwt.verify(token, process.env.KEYWORD || '');
+            const user = UserModel.findById(id);
+            if (!user) return res.json({ message: 'User dose not exist' });
             next();
-        }
-    ];
 
-    static validateLogIn = [
-        body('email').notEmpty().isEmail(),
-        body('password').notEmpty().isLength({ min: 8, max: 15 })
-    ];
+        } catch (error) {
+            console.log(error);
+            return res.json({ message: 'Unuthorized' });
+        }
+    }
+
+    static isAdminToken = async (req: Request, res: Response, next: any) => {
+        try {
+            const token = req.headers['x-access-token']?.toString();
+            if (!token) return res.json({ message: 'No token' });
+            const id = jwt.verify(token, process.env.KEYWORD || '');
+            const user = await UserModel.findById(id);
+            if (!user || user.rol != 'a') return res.json({ message: 'User dose not exist' });
+            next();
+
+        } catch (error) {
+            return res.json({ message: 'Unuthorized' });
+        }
+    }
 
 }

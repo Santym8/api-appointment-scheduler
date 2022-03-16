@@ -12,8 +12,10 @@ class Routes {
     }
 
     private addRoutes() {
-        this.router.post('/sing-up', Middlewares.validateSingUp, Controllers.singUpPatient);
-        this.router.get('/log-in', Middlewares.validateLogIn, Controllers.logIn);
+        this.router.post('/sing-up', Middlewares.validateFieldsSingUp, Controllers.singUpPatient);
+        this.router.get('/log-in', Middlewares.validateFieldsLogIn, Controllers.logIn);
+
+        this.router.put('/rename', Middlewares.isUserToken, Middlewares.validateFieldRename, Controllers.renameUser);
 
     }
 }
