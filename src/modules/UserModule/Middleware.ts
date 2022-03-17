@@ -28,12 +28,22 @@ export default class Middlewares {
         Middlewares.validateErrors
     ];
 
-    static validateFieldRename = [
+    static validateFieldsRename = [
         body('firstName').notEmpty().isLength({ min: 4, max: 20 }),
         body('lastName').notEmpty().isLength({ min: 4, max: 20 }),
         Middlewares.validateErrors
     ];
 
+    static validateFieldsChangePassword = [
+        body('password').notEmpty().isLength({ min: 8, max: 15 }),
+        body('newPassword').notEmpty().isLength({ min: 8, max: 15 }),
+        Middlewares.validateErrors
+    ];
+
+    static validateFieldsChangeEmail = [
+        body('newEmail').notEmpty().isEmail(),
+        Middlewares.validateErrors
+    ];
     //--------------------Validate token-----------------
     static isUserToken = async (req: Request, res: Response, next: any) => {
         try {
@@ -56,7 +66,7 @@ export default class Middlewares {
             if (!token) return res.json({ message: 'No token' });
             const id = jwt.verify(token, process.env.KEYWORD || '');
             const user = await UserModel.findById(id);
-            if (!user || user.rol != 'a') return res.json({ message: 'User dose not exist' });
+            if (!user || user.rol != 'a') return res.json({ message: 'tehe admin user dose not exist' });
             next();
 
         } catch (error) {

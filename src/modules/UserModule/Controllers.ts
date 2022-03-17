@@ -44,7 +44,6 @@ export default class Controllers {
         }
 
     }
-
     public static async logIn(req: Request, res: Response): Promise<void> {
         const { email, password } = req.query;
         const user = await UserModel.findOne({ email });
@@ -67,7 +66,6 @@ export default class Controllers {
     }
 
     //-----------------------------User token------------------------
-
     public static async renameUser(req: Request, res: Response): Promise<void> {
         const { firstName, lastName } = req.body;
         const userId = Controllers.getIdToken(req);
@@ -88,11 +86,68 @@ export default class Controllers {
         } else {
             res.json({ errors: 'the user dose not exists' });
         }
+    }
+    public static async changePassword(req: Request, res: Response): Promise<void> {
+        const { password, newPassword } = req.body;
+        const userId = Controllers.getIdToken(req);
+        const user = await UserModel.findById(userId);
 
-
-
+        if (user) {
+            if (await bcrypt.compare(password, user.password)) {
+                user.password = newPassword;
+                user.save()
+                    .then((() => {
+                        res.json({ msg: 'password change successful' });
+                    }))
+                    .catch((err) => {
+                        res.json({ errors: 'errors' });
+                        console.log(err);
+                    })
+            } else {
+                res.json({ errors: 'incorrect password' })
+            }
+        } else {
+            res.json({ errors: 'the user dose not exists' });
+        }
 
     }
+    public static async changeEmail(req: Request, res: Response): Promise<void> {
+        const { newEmail } = req.body;
+        const userId = Controllers.getIdToken(req);
+        const user = await UserModel.findById(userId);
+        if (user) {
+            if (await UserModel.findOne({ email: newEmail })) {
+                res.json({ errors: 'this email is already in use' })
+            } else {
+                user.email = newEmail;
+                user.save()
+                    .then(() => {
+                        res.json({ msg: 'email change successful' });
+                    })
+                    .catch((err) => {
+                        console.log(err);
+                        res.json({ errors: 'incorrect password' });
+                    })
+            }
+        } else {
+            res.json({ errors: 'the user dose not exists' });
+        }
+    }
+    public static async getUser(req: Request, res: Response): Promise<void> {
+        const userId = Controllers.getIdToken(req);
+        const user = await UserModel.findById(userId);
+        if (user) {
+            res.json({
+                firstname: user.firstName,
+                lastName: user.lastName,
+                email: user.email,
+            });
+        } else {
+            res.json({ errors: 'the user dose not exists' });
+        }
+    }
+
+    //---------------------Admin token----------------------
 
 
 }

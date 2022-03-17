@@ -1,7 +1,7 @@
-import { Router, Request, Response } from "express";
+import { Router } from "express";
 import Controllers from './Controllers'
 import Middlewares from './Middleware'
-import { body, validationResult } from 'express-validator';
+
 
 class Routes {
     public router: Router;
@@ -14,9 +14,13 @@ class Routes {
     private addRoutes() {
         this.router.post('/sing-up', Middlewares.validateFieldsSingUp, Controllers.singUpPatient);
         this.router.get('/log-in', Middlewares.validateFieldsLogIn, Controllers.logIn);
-
-        this.router.put('/rename', Middlewares.isUserToken, Middlewares.validateFieldRename, Controllers.renameUser);
-
+        //-------------User Token-------------
+        this.router.get('/', Middlewares.isUserToken, Controllers.getUser);
+        this.router.put('/rename', Middlewares.isUserToken, Middlewares.validateFieldsRename, Controllers.renameUser);
+        this.router.put('/change-password', Middlewares.isUserToken, Middlewares.validateFieldsChangePassword, Controllers.changePassword);
+        this.router.put('/change-email', Middlewares.isUserToken, Middlewares.validateFieldsChangeEmail, Controllers.changeEmail);
+        //-------------Admin token--------------
+        
     }
 }
 
