@@ -44,6 +44,11 @@ export default class Middlewares {
         body('newEmail').notEmpty().isEmail(),
         Middlewares.validateErrors
     ];
+
+    static validateFieldsEnableDisableUser = [
+        body('userId').notEmpty(),
+        Middlewares.validateErrors
+    ];
     //--------------------Validate token-----------------
     static isUserToken = async (req: Request, res: Response, next: any) => {
         try {
@@ -66,7 +71,7 @@ export default class Middlewares {
             if (!token) return res.json({ message: 'No token' });
             const id = jwt.verify(token, process.env.KEYWORD || '');
             const user = await UserModel.findById(id);
-            if (!user || user.rol != 'a') return res.json({ message: 'tehe admin user dose not exist' });
+            if (!user || user.rol != 'a') return res.json({ message: 'the admin user dose not exist' });
             next();
 
         } catch (error) {
