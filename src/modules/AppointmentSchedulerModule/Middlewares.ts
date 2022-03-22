@@ -17,10 +17,11 @@ export class Middlewares {
         Middlewares.validateErrors
     ];
 
-    static validateFieldsDeleteShift = [
+    static validateFieldsShiftId = [
         body('shiftId').notEmpty(),
         Middlewares.validateErrors
     ];
+
     //-------------Token------------------------
     static isDoctorToken = async (req: Request, res: Response, next: any) => {
         try {

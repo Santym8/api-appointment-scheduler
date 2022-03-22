@@ -11,7 +11,8 @@ class Routes {
 
     private addRoutes() {
         this.router.post('/create-shift', Middlewares.isDoctorToken, Middlewares.validateFieldsCreateShift, Controllers.createShift);
-        this.router.delete('/delete-shift', Middlewares.isDoctorToken, Middlewares.validateFieldsDeleteShift, Controllers.deleteShift);
+        this.router.delete('/delete-shift', Middlewares.isDoctorToken, Middlewares.validateFieldsShiftId, Controllers.deleteShift);
+        this.router.put('/change-status', Middlewares.isDoctorToken, Middlewares.validateFieldsShiftId, Controllers.changeStatus);
     }
 }
 

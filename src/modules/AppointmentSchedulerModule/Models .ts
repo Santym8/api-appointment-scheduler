@@ -20,6 +20,8 @@ const shiftSchema = new Schema({
         type: Boolean,
         default: false
     }
+}, {
+    versionKey: false
 });
 
 export const ShiftModel = model<IShift>('Shift', shiftSchema);
