@@ -139,7 +139,7 @@ export default class Controllers {
                 firstname: user.firstName,
                 lastName: user.lastName,
                 email: user.email,
-                rol:user.rol
+                rol: user.rol
             });
         } else {
             res.json({ errors: 'the user does not exists' });
@@ -199,7 +199,10 @@ export default class Controllers {
     public static async enableDisableUser(req: Request, res: Response) {
         const { userId } = req.body;
 
-        const user = await UserModel.findById(userId);
+        const user = await UserModel.findById(userId)
+            .catch((err) => {
+                console.log(err);
+            })
 
         if (user) {
             user.active = !user.active;
