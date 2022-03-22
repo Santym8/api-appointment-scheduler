@@ -13,6 +13,7 @@ class Routes {
         this.router.post('/create-shift', Middlewares.isDoctorToken, Middlewares.validateFieldsCreateShift, Controllers.createShift);
         this.router.delete('/delete-shift', Middlewares.isDoctorToken, Middlewares.validateFieldsShiftId, Controllers.deleteShift);
         this.router.put('/change-status', Middlewares.isDoctorToken, Middlewares.validateFieldsShiftId, Controllers.changeStatus);
+        this.router.get('/get-shifts', Middlewares.isDoctorToken,Middlewares.validateFieldGetShifts, Controllers.getShifts);
     }
 }
 

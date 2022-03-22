@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import jwt from 'jsonwebtoken';
 import { UserModel } from "../UserModule/Models";
-import { body, validationResult } from 'express-validator';
+import { body, validationResult, query } from 'express-validator';
 export class Middlewares {
 
     //------------Validate Fields---------
@@ -22,6 +22,11 @@ export class Middlewares {
         Middlewares.validateErrors
     ];
 
+    static validateFieldGetShifts = [
+        query('startDate').notEmpty().isISO8601().toDate(),
+        query('endDate').notEmpty().isISO8601().toDate(),
+        Middlewares.validateErrors
+    ];
     //-------------Token------------------------
     static isDoctorToken = async (req: Request, res: Response, next: any) => {
         try {
