@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { ShiftModel } from "./Models ";
 import jwt from 'jsonwebtoken';
-import { IShift } from "./Interfaces/IShift";
+import { IUser } from "../UserModule/Interfaces/IUser";
 
 export class Controllers {
 
@@ -13,6 +13,7 @@ export class Controllers {
         return null
     }
 
+    //------------------------Doctor---------------------
     public static async createShift(req: Request, res: Response): Promise<void> {
         const { startDate } = req.body;
         const doctorId = Controllers.getIdToken(req);
@@ -86,6 +87,7 @@ export class Controllers {
         const doctorId = Controllers.getIdToken(req);
 
         const shifts = await ShiftModel.find({ doctorId, startDate: { $gte: startDate, $lt: endDate } })
+            .populate('patientId')
             .catch((error) => {
                 console.log(error);
                 res.json({ errors: 'error' });
@@ -94,12 +96,21 @@ export class Controllers {
         if (shifts) {
             let shiftsSend: any[] = [];
             for (let i = 0; i < shifts.length; i++) {
-                shiftsSend.push({
+                let shift: any = {
                     _id: shifts[i].id,
                     startDate: shifts[i].startDate,
                     complete: shifts[i].complete,
-                    patientId: shifts[i].patientId
-                });
+                    patient: null
+                }
+                const patient = shifts[i].patientId as unknown as IUser;
+                if (patient) {
+                    shift['patient'] = {
+                        firstName: patient.firstName,
+                        lastName: patient.lastName,
+                        email: patient.email
+                    }
+                }
+                shiftsSend.push(shift);
             }
             res.json({ data: shiftsSend });
         } else {
@@ -109,4 +120,114 @@ export class Controllers {
 
 
     }
+    
+    //----------------------Patient-------------------
+    public static async getAvailableShifts(req: Request, res: Response): Promise<void> {
+        const { startDate, endDate } = req.query;
+
+        const shifts = await ShiftModel.find(
+            {
+                startDate: { $gte: startDate, $lt: endDate },
+                patientId: null
+            })
+            .populate('doctorId')
+            .catch((err) => { console.log(err) })
+
+        if (shifts) {
+            let shiftsSend: any[] = [];
+            for (let i = 0; i < shifts.length; i++) {
+                const doctor = shifts[i].doctorId as unknown as IUser;
+                shiftsSend.push({
+                    _id: shifts[i].id,
+                    startDate: shifts[i].startDate,
+                    doctor: {
+                        firstName: doctor.firstName,
+                        lastName: doctor.lastName,
+                        email: doctor.email
+                    }
+                });
+            }
+            res.json({ data: shiftsSend });
+        }
+
+    }
+
+    public static async getMyAppointments(req: Request, res: Response): Promise<void> {
+        const { startDate, endDate } = req.query;
+        const patientId = Controllers.getIdToken(req);
+
+        const shifts = await ShiftModel.find(
+            {
+                startDate: { $gte: startDate, $lt: endDate },
+                patientId: patientId
+            })
+            .populate('doctorId')
+            .catch((err) => { console.log(err) })
+
+        if (shifts) {
+            let shiftsSend: any[] = [];
+            for (let i = 0; i < shifts.length; i++) {
+                const doctor = shifts[i].doctorId as unknown as IUser;
+                shiftsSend.push({
+                    _id: shifts[i].id,
+                    startDate: shifts[i].startDate,
+                    doctor: {
+                        firstName: doctor.firstName,
+                        lastName: doctor.lastName,
+                        email: doctor.email
+                    }
+                });
+            }
+            res.json({ data: shiftsSend });
+        }
+
+
+    }
+
+    public static async scheduleAppointment(req: Request, res: Response): Promise<void> {
+        const { shiftId } = req.body;
+        const patientId = Controllers.getIdToken(req);
+        const shift = await ShiftModel.findById(shiftId)
+            .catch((err) => {
+                console.log(err);
+            })
+
+        if (shift) {
+            if (shift.patientId != null) res.json({ errors: 'the shift is already occupied by another patient' });
+            else {
+                shift.patientId = patientId as string;
+                shift.save()
+                    .then(() => res.send({ msg: 'the scheduling was successful' }))
+                    .catch((err) => {
+                        console.log(err);
+                        res.json({ errors: 'error' });
+                    })
+            }
+        } else {
+            res.json({ errors: 'the shift does not exists' });
+        }
+    }
+
+    public static async cancelAppointment(req: Request, res: Response): Promise<void> {
+        const { shiftId } = req.body;
+        const patientId = Controllers.getIdToken(req);
+
+        const shift = await ShiftModel.findOne({ _id: shiftId, patientId }).
+            catch((err) => console.log(err))
+
+        if (shift) {
+            shift.patientId = null as unknown as string;
+            shift.save()
+                .then(() => res.json({ msg: 'successful cancellation' }))
+                .catch((err) => {
+                    console.log(err);
+                    res.json({ errors: 'error' })
+                })
+        }
+        else {
+            res.json({ errors: 'the shift does not exists' })
+        }
+    }
+
+
 }

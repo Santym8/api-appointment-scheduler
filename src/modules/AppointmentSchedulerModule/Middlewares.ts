@@ -27,6 +27,9 @@ export class Middlewares {
         query('endDate').notEmpty().isISO8601().toDate(),
         Middlewares.validateErrors
     ];
+
+
+
     //-------------Token------------------------
     static isDoctorToken = async (req: Request, res: Response, next: any) => {
         try {
@@ -37,6 +40,19 @@ export class Middlewares {
             if (!user || user.rol != 'd') return res.json({ message: 'the doctor user dose not exist' });
             next();
 
+        } catch (error) {
+            return res.json({ message: 'Unuthorized' });
+        }
+    }
+
+    static isPatientToken = async (req: Request, res: Response, next: any) => {
+        try {
+            const token = req.headers['x-access-token']?.toString();
+            if (!token) return res.json({ message: 'No token' });
+            const id = jwt.verify(token, process.env.KEYWORD || '');
+            const user = await UserModel.findById(id);
+            if (!user || user.rol != 'p') return res.json({ message: 'the patient user dose not exist' });
+            next();
         } catch (error) {
             return res.json({ message: 'Unuthorized' });
         }
